@@ -34,7 +34,7 @@
 //    this list of conditions and the following disclaimer in the documentation
 //    and/or other materials provided with the distribution.
 //
-//  * The name of the copyright holders may not be used to endorse or promote
+
 //    products derived from this software without specific prior written
 ///   permission.
 //
@@ -55,7 +55,8 @@
 
 #include <opencv2/opencv.hpp>
 #ifdef OPENCV2P4
-#include <opencv2/nonfree/nonfree.hpp>
+#include <opencv2/features2d.hpp>
+#include <opencv2/xfeatures2d.hpp>
 #endif
 
 #include <fstream>
@@ -155,7 +156,7 @@ int main(int argc, char * argv[])
 	}
 
 	//std::string extractorType = fs["FeatureOptions"]["ExtractorType"];
-	//cv::Ptr<cv::DescriptorExtractor> extractor;
+
 	//if(extractorType == "SIFT") {
 	//	extractor = new cv::SiftDescriptorExtractor();
 	//} else if(extractorType == "SURF") {
@@ -665,35 +666,27 @@ cv::Ptr<cv::FeatureDetector> generateDetector(cv::FileStorage &fs) {
 	//create common feature detector and descriptor extractor
 	std::string detectorMode = fs["FeatureOptions"]["DetectorMode"];
 	std::string detectorType = fs["FeatureOptions"]["DetectorType"];
-	cv::Ptr<cv::FeatureDetector> detector = NULL;
+	cv::Ptr<cv::FeatureDetector> detector;
 	if(detectorMode == "ADAPTIVE") {
-
-		if(detectorType != "STAR" && detectorType != "SURF" && 
-			detectorType != "FAST") {
-				std::cerr << "Adaptive Detectors only work with STAR, SURF "
-					"and FAST" << std::endl;
-		} else {
-
-			detector = new cv::DynamicAdaptedFeatureDetector(
-				cv::AdjusterAdapter::create(detectorType),
-				fs["FeatureOptions"]["Adaptive"]["MinFeatures"], 
-				fs["FeatureOptions"]["Adaptive"]["MaxFeatures"], 
-				fs["FeatureOptions"]["Adaptive"]["MaxIters"]);
-		}
+		std::cerr << "ADAPTIVE is not supported in this version" << std::endl;
+		//somehow DynamicAdaptedFeatureDetector seems to have been removed in opencv3.0
+//		if(detectorType != "STAR" && detectorType != "SURF" && 
+//			detectorType != "FAST") {
+//				std::cerr << "Adaptive Detectors only work with STAR, SURF "
+//					"and FAST" << std::endl;
+//		} else {
+//
+//			detector = new cv::DynamicAdaptedFeatureDetector(
+//				cv::AdjusterAdapter::create(detectorType),
+//				fs["FeatureOptions"]["Adaptive"]["MinFeatures"], 
+//				fs["FeatureOptions"]["Adaptive"]["MaxFeatures"], 
+//				fs["FeatureOptions"]["Adaptive"]["MaxIters"]);
+//		}
 
 	} else if(detectorMode == "STATIC") {
-		if(detectorType == "STAR") {
+		if(detectorType == "FAST") {
 
-			detector = new cv::StarFeatureDetector(
-				fs["FeatureOptions"]["StarDetector"]["MaxSize"],
-				fs["FeatureOptions"]["StarDetector"]["Response"],
-				fs["FeatureOptions"]["StarDetector"]["LineThreshold"],
-				fs["FeatureOptions"]["StarDetector"]["LineBinarized"],
-				fs["FeatureOptions"]["StarDetector"]["Suppression"]);
-
-		} else if(detectorType == "FAST") {
-
-			detector = new cv::FastFeatureDetector(
+			detector = cv::FastFeatureDetector::create(
 				fs["FeatureOptions"]["FastDetector"]["Threshold"],
 				(int)fs["FeatureOptions"]["FastDetector"]
 						["NonMaxSuppression"] > 0);	
@@ -701,7 +694,7 @@ cv::Ptr<cv::FeatureDetector> generateDetector(cv::FileStorage &fs) {
 		} else if(detectorType == "SURF") {
 
 #ifdef OPENCV2P4
-			detector = new cv::SURF(
+			detector = cv::xfeatures2d::SURF::create(
 				fs["FeatureOptions"]["SurfDetector"]["HessianThreshold"],
 				fs["FeatureOptions"]["SurfDetector"]["NumOctaves"],
 				fs["FeatureOptions"]["SurfDetector"]["NumOctaveLayers"],
@@ -709,7 +702,7 @@ cv::Ptr<cv::FeatureDetector> generateDetector(cv::FileStorage &fs) {
 				(int)fs["FeatureOptions"]["SurfDetector"]["Upright"] > 0);
 
 #else
-			detector = new cv::SurfFeatureDetector(
+			detector = new cv::xfeatures2d::SurfFeatureDetector(
 				fs["FeatureOptions"]["SurfDetector"]["HessianThreshold"],
 				fs["FeatureOptions"]["SurfDetector"]["NumOctaves"],
 				fs["FeatureOptions"]["SurfDetector"]["NumOctaveLayers"],
@@ -717,7 +710,7 @@ cv::Ptr<cv::FeatureDetector> generateDetector(cv::FileStorage &fs) {
 #endif
 		} else if(detectorType == "SIFT") {
 #ifdef OPENCV2P4
-			detector = new cv::SIFT(
+			detector = cv::xfeatures2d::SIFT::create(
 				fs["FeatureOptions"]["SiftDetector"]["NumFeatures"],
 				fs["FeatureOptions"]["SiftDetector"]["NumOctaveLayers"],
 				fs["FeatureOptions"]["SiftDetector"]["ContrastThreshold"],
@@ -730,7 +723,7 @@ cv::Ptr<cv::FeatureDetector> generateDetector(cv::FileStorage &fs) {
 #endif
 		} else if(detectorType == "MSER") {
 
-			detector = new cv::MserFeatureDetector(
+			detector = cv::MSER::create(
 				fs["FeatureOptions"]["MSERDetector"]["Delta"],
 				fs["FeatureOptions"]["MSERDetector"]["MinArea"],
 				fs["FeatureOptions"]["MSERDetector"]["MaxArea"],
@@ -760,10 +753,10 @@ generates a feature detector based on options in the settings file
 cv::Ptr<cv::DescriptorExtractor> generateExtractor(cv::FileStorage &fs)
 {
 	std::string extractorType = fs["FeatureOptions"]["ExtractorType"];
-	cv::Ptr<cv::DescriptorExtractor> extractor = NULL;
+	cv::Ptr<cv::DescriptorExtractor> extractor;
 	if(extractorType == "SIFT") {
 #ifdef OPENCV2P4
-		extractor = new cv::SIFT(
+		extractor = cv::xfeatures2d::SIFT::create(
 			fs["FeatureOptions"]["SiftDetector"]["NumFeatures"],
 			fs["FeatureOptions"]["SiftDetector"]["NumOctaveLayers"],
 			fs["FeatureOptions"]["SiftDetector"]["ContrastThreshold"],
@@ -776,7 +769,7 @@ cv::Ptr<cv::DescriptorExtractor> generateExtractor(cv::FileStorage &fs)
 	} else if(extractorType == "SURF") {
 
 #ifdef OPENCV2P4
-		extractor = new cv::SURF(
+		extractor = cv::xfeatures2d::SURF::create(
 			fs["FeatureOptions"]["SurfDetector"]["HessianThreshold"],
 			fs["FeatureOptions"]["SurfDetector"]["NumOctaves"],
 			fs["FeatureOptions"]["SurfDetector"]["NumOctaveLayers"],
