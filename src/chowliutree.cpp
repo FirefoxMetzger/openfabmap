@@ -52,7 +52,7 @@
 //////////////////////////////////////////////////////////////////////////////*/
 
 #include "../include/chowliutree.hpp"
-
+#include <map>
 #include <iostream>
 
 namespace of2 {
