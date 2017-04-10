@@ -684,7 +684,16 @@ cv::Ptr<cv::FeatureDetector> generateDetector(cv::FileStorage &fs) {
 //		}
 
 	} else if(detectorMode == "STATIC") {
-		if(detectorType == "FAST") {
+		if(detectorType == "STAR") {
+
+			detector = cv::xfeatures2d::StarDetector::create(
+				fs["FeatureOptions"]["StarDetector"]["MaxSize"],
+				fs["FeatureOptions"]["StarDetector"]["Response"],
+				fs["FeatureOptions"]["StarDetector"]["LineThreshold"],
+				fs["FeatureOptions"]["StarDetector"]["LineBinarized"],
+				fs["FeatureOptions"]["StarDetector"]["Suppression"]);
+
+		} else if(detectorType == "FAST") {
 
 			detector = cv::FastFeatureDetector::create(
 				fs["FeatureOptions"]["FastDetector"]["Threshold"],
