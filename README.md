@@ -6,7 +6,7 @@ For a propper read on what this is, refer to the original repo [here](https://gi
 
 ## Dependencies
 
-- openCV 3.2 (if using ROS try ros-<distro>-opencv3 - tested on kinetic, it includes compiled non-free libraries as well)
+- openCV 3.2 (if using ROS try `ros-<distro>-opencv3` - tested on kinetic, it includes compiled non-free libraries as well)
 - cmake
 
 ## Installation
